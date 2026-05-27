@@ -1,0 +1,29 @@
+{
+  "appId": "com.arenaclash.game",
+  "appName": "Arena Clash",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#05050f"
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#05050f"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#05050f",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "#05050f"
+    }
+  }
+}
