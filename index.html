@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#F72585" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Arena Clash" />
+  <meta name="application-name" content="Arena Clash" />
+  <meta name="msapplication-TileColor" content="#05050f" />
+  <meta name="msapplication-TileImage" content="icons/icon-144.png" />
+
+  <!-- SEO / Social -->
+  <meta name="description" content="3v3 real-time battle game. Choose from 6 unique heroes with ultimates, skills, and passives. Fight across 5 maps, open chests, level up your heroes." />
+  <meta property="og:title" content="Arena Clash — 3v3 Battle Legends" />
+  <meta property="og:description" content="3v3 real-time battle game with 6 unique heroes, ultimates, skills, shop, and leaderboard." />
+  <meta property="og:image" content="icons/icon-512.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <title>Arena Clash — 3v3 Battle Legends</title>
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="96x96"  href="icons/icon-96.png" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Game Stylesheet -->
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+  <!-- PWA Install Banner (shown by JS when installable) -->
+  <div id="pwa-install-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1a0d2e,#0d0d2e);border:1px solid #F72585;border-radius:14px;padding:14px 20px;z-index:9999;display:none;align-items:center;gap:14px;box-shadow:0 0 30px rgba(247,37,133,0.3);max-width:360px;width:90%">
+    <img src="icons/icon-72.png" width="44" height="44" style="border-radius:10px" alt="Arena Clash icon"/>
+    <div style="flex:1">
+      <div style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;color:#F72585;letter-spacing:1px">ARENA CLASH</div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:11px;color:#888;margin-top:2px">Install as app — play offline!</div>
+    </div>
+    <button id="pwa-install-btn" style="padding:8px 16px;background:linear-gradient(135deg,#F72585,#7B2FBE);border:none;border-radius:8px;color:white;font-family:'Bebas Neue',cursive;font-size:14px;letter-spacing:1px;cursor:pointer">INSTALL</button>
+    <button id="pwa-dismiss-btn" style="background:transparent;border:none;color:#555;font-size:20px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+  </div>
+
+  <!-- Game Root -->
+  <div id="root"></div>
+
+  <!-- Game Scripts (order matters) -->
+  <script src="js/config.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/heroes.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/battle.js"></script>
+  <script src="js/screens.js"></script>
+  <script src="js/main.js"></script>
+
+  <!-- PWA Service Worker + Install Prompt -->
+  <script>
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('[PWA] Service worker registered:', reg.scope))
+          .catch(err => console.log('[PWA] SW registration failed:', err));
+      });
+    }
+
+    // PWA Install prompt
+    let deferredPrompt = null;
+    const banner   = document.getElementById('pwa-install-banner');
+    const installBtn = document.getElementById('pwa-install-btn');
+    const dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Show banner after a short delay (don't interrupt start screen)
+      setTimeout(() => {
+        if (banner) banner.style.display = 'flex';
+      }, 8000);
+    });
+
+    if (installBtn) {
+      installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[PWA] Install outcome:', outcome);
+        deferredPrompt = null;
+        if (banner) banner.style.display = 'none';
+      });
+    }
+
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', () => {
+        if (banner) banner.style.display = 'none';
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      console.log('[PWA] App installed!');
+      if (banner) banner.style.display = 'none';
+    });
+
+    // Lock to landscape on mobile
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+  </script>
+</body>
+</html>
